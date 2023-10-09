@@ -1,1 +1,90 @@
-# aws-secret-manager-to-dotenv-actions
+# Export AWS Secrets Manager key/value pairs to .env
+
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/pblobp/aws-secret-manager-to-dotenv-actions/blob/master/LICENSE)
+
+This GitHub Action lets you export secrets stored in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager) to environment values in your GitHub runner.
+
+## Usage
+
+Add the AWS IAM keys and the secret name that you want to use from your AWS Secrets Manager secrets list to your GitHub repo secrets. Then, in the GitHub actions yaml, add the following step.
+
+1. Using github [openid-connect](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) (Recommended)
+
+```yaml
+steps:
+ - name: Export ENV from AWS SecretManager
+   uses: pblobp/aws-secret-manager-to-dotenv-actions@v1
+   with:
+     AWS_DEFAULT_REGION: "YOUR-AWS-REGION"
+     SECRET_NAME: ${{ env.SECRET_NAME }}
+     OUTPUT_PATH: '.env'
+```
+
+2. Using github secrets
+
+```yaml
+steps:
+ - name: Export ENV from AWS SecretManager
+   uses: pblobp/aws-secret-manager-to-dotenv-actions@v1
+   with:
+     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+     AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+     SECRET_NAME: ${{ secrets.SECRET_NAME }}
+     OUTPUT_PATH: '.env'
+```
+
+### AWS IAM
+
+You need an [AWS IAM](https://aws.amazon.com/iam) user that has policies to access/read the AWS Secrets Manager secret. Add this IAM user's access id/keys as `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and region as `AWS_DEFAULT_REGION` in your repo's [GitHub Secrets](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets).
+
+#### Policy
+
+An example policy to provide the permissions to the user is given below:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "secretsmanager:GetSecretValue",
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+We recommend being more specific with the `Resource` in the policy by adding the secret ARN.
+
+Get more information at [AWS User Guide](https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_identity-based-policies.html#permissions_grant-get-secret-value-to-one-secret).
+
+### Secret Name
+
+This is the secret name that you want to read the secrets from. Only one secret name is supported.
+
+### Environment Values
+
+Your secrets will be exported as environment values into the github runner.
+These environment values are masked with `***` in logs in the GitHub Actions for security purposes.
+
+#### Raw string values
+
+Most of the secrets can be parsed. However, in some case, parsing of secrets can fail. An example case is an invalid json.
+In such cases, the unparsed raw sting is stored in `asm_secret` env key.  
+
+### Export environment variables to file
+
+The environment variables can also be exported to a file with `OUTPUT_PATH` input parameter.
+When `OUTPUT_PATH` is defined, the GitHub action writes the environment variables to the specified filename.
+
+## Contributing
+
+Your contributions are always welcome!
+Feel free to check [issues](https://github.com/pblobp/aws-secret-manager-to-dotenv-actions/issues)
+or [Pull Requests](https://github.com/pblobp/aws-secret-manager-to-dotenv-actions/pulls)
+
+## License
+
+This project is [MIT](https://github.com/pblobp/aws-secret-manager-to-dotenv-actions/blob/master/LICENSE) licensed.
