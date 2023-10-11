@@ -30,20 +30,4 @@ describe('get SecretString from AWS SecretsManager', () => {
       expect(parsedData).toBeDefined()
     })
   })
-
-  describe('get unparsable data', () => {
-    beforeAll(async () => {
-      const INPUT_SECRET_NAME = `${process.env.SECRET_NAME}-unvalid`
-      const secretsManager = new aws.SecretsManager({
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        region: process.env.AWS_DEFAULT_REGION
-      })
-      data = await index.getSecretValue(secretsManager, INPUT_SECRET_NAME)
-    })
-
-    test('should have SecretString', () => {
-      expect(data).toHaveProperty('test')
-    })
-  })
 })

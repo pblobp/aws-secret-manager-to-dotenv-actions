@@ -15,27 +15,20 @@ if (core.getInput('AWS_SESSION_TOKEN') || process.env.AWS_SESSION_TOKEN) {
   AWSConfig.sessionToken = core.getInput('AWS_SESSION_TOKEN') || process.env.AWS_SESSION_TOKEN
 }
 
-const secretsManager = new aws.SecretsManager(AWSConfig)
-
 async function getSecretValue(secretsManager, secretName) {
   return secretsManager.getSecretValue({ SecretId: secretName }).promise()
 }
 
+const secretsManager = new aws.SecretsManager(AWSConfig);
+
 getSecretValue(secretsManager, secretName).then(resp => {
   const secretString = resp.SecretString
-  core.setSecret(secretString)
-
   if (secretString == null) {
     core.warning(`${secretName} has no secret values`)
     return
   }
-
   try {
     const parsedSecret = JSON.parse(secretString)
-    Object.entries(parsedSecret).forEach(([key, value]) => {
-      core.setSecret(value)
-      core.exportVariable(key, value)
-    })
     if (outputPath) {
       const secretsAsEnv = Object.entries(parsedSecret).map(([key, value]) => `${key}=${value}`).join('\n')
       fs.writeFileSync(outputPath, secretsAsEnv)
